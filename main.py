@@ -63,13 +63,17 @@ def upload_from_base64():
 
 @app.route('/training', methods=['POST'])
 def training_cats():
-    data = request.data
+    data_json = request.data.decode('utf-8')
+    data_dict = json.loads(data_json)
+    data_dict['cred'] = json.load(open('./firebase/cred.json', 'r'))
+
+    payload = json.dumps(data_dict).encode('utf-8')
 
     headers = { 'Content-Type': 'application/json' }
 
-    res = requests.post('{}/training'.format(train_url), data, headers=headers)
+    response = requests.post('{}/training'.format(train_url), data=payload, headers=headers)
 
-    print(res)
+    print(response)
 
     return '200'
 
