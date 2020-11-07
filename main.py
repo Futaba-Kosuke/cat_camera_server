@@ -2,8 +2,11 @@ from flask import Flask, request
 from flask_cors import CORS
 
 import os
+import sys
 import base64
 import datetime
+import json
+import requests
 
 import numpy as np
 import cv2
@@ -14,6 +17,8 @@ app = Flask(__name__)
 CORS(app)
 
 firebase = Firebase()
+
+train_url = sys.argv[1]
 
 def base64_to_numpy(img_base64):
     # base64をnumpyに変換
@@ -53,6 +58,18 @@ def upload_from_base64():
     firebase.upload_file(file_path=file_path)
 
     os.remove(file_path)
+
+    return '200'
+
+@app.route('/training', methods=['POST'])
+def training_cats():
+    data = request.data
+
+    headers = { 'Content-Type': 'application/json' }
+
+    res = requests.post('{}/training'.format(train_url), data, headers=headers)
+
+    print(res)
 
     return '200'
 
