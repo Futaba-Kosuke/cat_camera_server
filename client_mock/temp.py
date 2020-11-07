@@ -32,6 +32,4 @@ payload = json.dumps(payload).encode("utf-8")
 headers = {"Content-Type": "application/json"}
 
 response = requests.post('{}/training'.format(url), headers=headers, data=payload)
-
-with open('./temp.zip', 'wb') as f:
-    f.write(response.content)
+print(response)
