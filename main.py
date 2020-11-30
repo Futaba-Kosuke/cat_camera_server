@@ -47,7 +47,14 @@ def func_test():
 
 @app.route('/upload', methods=['POST'])
 def upload_from_base64():
-    img_base64 = request.form['img_base64']
+
+    data = request.data.decode('utf-8')
+    data = json.loads(data)
+
+    img_base64 = data['img_base64']
+    cat_boxes = data['cat_boxes']
+
+    print(cat_boxes)
 
     img_np = base64_to_numpy(img_base64)
 
