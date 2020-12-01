@@ -19,6 +19,7 @@ CORS(app)
 
 firebase = Firebase()
 
+# 起動時に最新のモデルに更新
 densenet_ref = firebase.get_document_ref(collection='model', document='densenet')
 densenet_info = densenet_ref.get().to_dict()
 if densenet_info['is_enable'] and densenet_info['is_update']:
@@ -32,8 +33,10 @@ if densenet_info['is_enable'] and densenet_info['is_update']:
         'url': densenet_info['url']
     })
 
+# 訓練用サーバーの URL:port を指定
 train_url = sys.argv[1]
 
+# base64画像 -> numpy画像
 def base64_to_numpy(img_base64):
     # base64をnumpyに変換
     img_bytes = base64.b64decode(img_base64)
@@ -41,12 +44,14 @@ def base64_to_numpy(img_base64):
     img_np = cv2.imdecode(temp, cv2.IMREAD_ANYCOLOR)
     return img_np
 
+# numpy画像 -> base64画像
 def numpy_to_base64(img_np):
     # numpyをbase64に変換
     _, temp = cv2.imencode('.jpeg', img_np)
     img_base64 = base64.b64encode(temp)
     return img_base64
 
+# 接続テスト用
 @app.route('/test', methods=['GET', 'POST'])
 def func_test():
     try:
@@ -59,6 +64,7 @@ def func_test():
     except Exception as e:
         return str(e)
 
+# FireStorage & Firestore へのデータのアップロード
 @app.route('/upload', methods=['POST'])
 def upload_from_base64():
 
@@ -68,34 +74,40 @@ def upload_from_base64():
     img_base64 = data['img_base64']
     cat_boxes = data['cat_boxes']
 
-    print(cat_boxes)
-
     img_np = base64_to_numpy(img_base64)
 
+    # 画像を一旦サーバー上に保存
     file_name = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
     file_path = './firebase/{}.jpeg'.format(file_name)
     cv2.imwrite(file_path, img_np)
  
+    # ファイルを送信
     firebase.upload_file(file_path=file_path)
 
+    # 一時保存したファイルの削除
     os.remove(file_path)
 
     return '200'
 
+# GPUサーバーで学習を行う
 @app.route('/training', methods=['POST'])
 def training_cats():
     data_json = request.data.decode('utf-8')
     data_dict = json.loads(data_json)
     data_dict['cred'] = json.load(open('./firebase/cred.json', 'r'))
 
+    # 送信するJsonを生成
     payload = json.dumps(data_dict).encode('utf-8')
 
+    # POSTするデータの型をJsonに変更
     headers = { 'Content-Type': 'application/json' }
 
+    # GPUサーバーに送信
     response = requests.post('{}/training'.format(train_url), data=payload, headers=headers)
 
     print(response)
 
+    # 最新モデルに更新
     densenet_ref = firebase.get_document_ref(collection='model', document='densenet')
     densenet_info = densenet_ref.get().to_dict()
     if densenet_info['is_enable'] and densenet_info['is_update']:
