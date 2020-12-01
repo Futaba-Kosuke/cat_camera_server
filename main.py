@@ -38,7 +38,6 @@ train_url = sys.argv[1]
 
 # base64画像 -> numpy画像
 def base64_to_numpy(img_base64):
-    # base64をnumpyに変換
     img_bytes = base64.b64decode(img_base64)
     temp = np.frombuffer(img_bytes, np.uint8)
     img_np = cv2.imdecode(temp, cv2.IMREAD_ANYCOLOR)
@@ -46,7 +45,6 @@ def base64_to_numpy(img_base64):
 
 # numpy画像 -> base64画像
 def numpy_to_base64(img_np):
-    # numpyをbase64に変換
     _, temp = cv2.imencode('.jpeg', img_np)
     img_base64 = base64.b64encode(temp)
     return img_base64
