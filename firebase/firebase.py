@@ -30,4 +30,5 @@ class Firebase:
             'postTime': datetime.datetime.now()
         })
 
-
+    def get_document_ref(self, collection, document):
+        return self.db.collection(collection).document(document)

@@ -7,6 +7,7 @@ import base64
 import datetime
 import json
 import requests
+import urllib
 
 import numpy as np
 import cv2
@@ -17,6 +18,19 @@ app = Flask(__name__)
 CORS(app)
 
 firebase = Firebase()
+
+densenet_ref = firebase.get_document_ref(collection='model', document='densenet')
+densenet_info = densenet_ref.get().to_dict()
+if densenet_info['is_enable'] and densenet_info['is_update']:
+    file_name = 'densenet.pth'
+    file_url = densenet_info['url']
+    urllib.request.urlretrieve(file_url, file_name)
+
+    densenet_ref.set({
+        'is_enable': True,
+        'is_update': False,
+        'url': densenet_info['url']
+    })
 
 train_url = sys.argv[1]
 
@@ -81,6 +95,19 @@ def training_cats():
     response = requests.post('{}/training'.format(train_url), data=payload, headers=headers)
 
     print(response)
+
+    densenet_ref = firebase.get_document_ref(collection='model', document='densenet')
+    densenet_info = densenet_ref.get().to_dict()
+    if densenet_info['is_enable'] and densenet_info['is_update']:
+        file_name = 'densenet.pth'
+        file_url = densenet_info['url']
+        urllib.request.urlretrieve(file_url, file_name)
+
+        densenet_ref.set({
+            'is_enable': True,
+            'is_update': False,
+            'url': densenet_info['url']
+        })
 
     return '200'
 
