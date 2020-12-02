@@ -22,7 +22,7 @@ firebase = Firebase()
 # 起動時に最新のモデルに更新
 densenet_ref = firebase.get_document_ref(collection='model', document='densenet')
 densenet_info = densenet_ref.get().to_dict()
-if densenet_info['is_enable'] and densenet_info['is_update']:
+if densenet_info['is_enable'] and ( densenet_info['is_update'] or not os.isfile('classification/densenet.pth') ):
     file_name = 'classification/densenet.pth'
     file_url = densenet_info['url']
     urllib.request.urlretrieve(file_url, file_name)
@@ -108,7 +108,7 @@ def training_cats():
     # 最新モデルに更新
     densenet_ref = firebase.get_document_ref(collection='model', document='densenet')
     densenet_info = densenet_ref.get().to_dict()
-    if densenet_info['is_enable'] and densenet_info['is_update']:
+    if densenet_info['is_enable'] and ( densenet_info['is_update'] or not os.isfile('classification/densenet.pth') ):
         file_name = 'densenet.pth'
         file_url = densenet_info['url']
         urllib.request.urlretrieve(file_url, file_name)
