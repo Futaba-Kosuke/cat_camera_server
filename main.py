@@ -13,6 +13,7 @@ import numpy as np
 import cv2
 
 from firebase.firebase import Firebase
+from classification.classification import Classification
 
 app = Flask(__name__)
 CORS(app)
@@ -22,7 +23,7 @@ firebase = Firebase()
 # 起動時に最新のモデルに更新
 densenet_ref = firebase.get_document_ref(collection='model', document='densenet')
 densenet_info = densenet_ref.get().to_dict()
-if densenet_info['is_enable'] and ( densenet_info['is_update'] or not os.isfile('classification/densenet.pth') ):
+if densenet_info['is_enable'] and ( densenet_info['is_update'] or not os.path.isfile('classification/densenet.pth') ):
     file_name = 'classification/densenet.pth'
     file_url = densenet_info['url']
     urllib.request.urlretrieve(file_url, file_name)
@@ -33,7 +34,10 @@ if densenet_info['is_enable'] and ( densenet_info['is_update'] or not os.isfile(
         'url': densenet_info['url']
     })
 
-# 訓練用サーバーの URL:port を指定
+if os.path.isfile('classification/densenet.pth'):
+    classification = Classification(model_path='classification/densenet.pth', classes=densenet_info['labels'])
+
+# 訓練用サーバーの URL を指定
 train_url = sys.argv[1]
 
 # base64画像 -> numpy画像
@@ -74,6 +78,13 @@ def upload_from_base64():
 
     img_np = base64_to_numpy(img_base64)
 
+    labels = [None] * len(cat_boxes)
+    if os.path.isfile('classification/densenet.pth'):
+        for i, box in enumerate(cat_boxes):
+            labels[i] = classification.predict(img_np[int(box['y_min']): int(box['y_max']), int(box['x_min']): int(box['x_max'])])
+
+    print(labels)
+
     # 画像を一旦サーバー上に保存
     file_name = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
     file_path = './firebase/{}.jpeg'.format(file_name)
@@ -108,15 +119,16 @@ def training_cats():
     # 最新モデルに更新
     densenet_ref = firebase.get_document_ref(collection='model', document='densenet')
     densenet_info = densenet_ref.get().to_dict()
-    if densenet_info['is_enable'] and ( densenet_info['is_update'] or not os.isfile('classification/densenet.pth') ):
-        file_name = 'densenet.pth'
+    if densenet_info['is_enable'] and ( densenet_info['is_update'] or not os.path.isfile('classification/densenet.pth') ):
+        file_name = 'classification/densenet.pth'
         file_url = densenet_info['url']
         urllib.request.urlretrieve(file_url, file_name)
 
         densenet_ref.set({
             'is_enable': True,
             'is_update': False,
-            'url': densenet_info['url']
+            'url': densenet_info['url'],
+            'labels': densenet_info['labels']
         })
 
     return '200'
