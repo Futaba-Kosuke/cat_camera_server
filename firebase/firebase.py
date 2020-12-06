@@ -15,7 +15,7 @@ class Firebase:
 
         self.db = firestore.client()
 
-    def upload_file(self, file_path='./firebase/image.jpeg', cat_boxes = [{}], content_type='image/jpeg', meta_data={'from': platform.system()}):
+    def upload_file(self, file_path='./firebase/image.jpeg', cat_boxes = [{}], content_type='image/jpeg', labels=[], meta_data={'from': platform.system()}):
         blob = self.bucket.blob(file_path.split('/')[-1])
         with open(file_path, 'rb') as f:
             blob.upload_from_file(f, content_type=content_type)
@@ -28,7 +28,8 @@ class Firebase:
             'isFavorite': False,
             'url': url,
             'postTime': datetime.datetime.now(),
-            'cat_boxes': cat_boxes
+            'cat_boxes': cat_boxes,
+            'labels': labels
         })
 
     def get_document_ref(self, collection, document):

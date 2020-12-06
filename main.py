@@ -91,7 +91,7 @@ def upload_from_base64():
     cv2.imwrite(file_path, img_np)
  
     # ファイルを送信
-    firebase.upload_file(file_path=file_path, cat_boxes=cat_boxes)
+    firebase.upload_file(file_path=file_path, cat_boxes=cat_boxes, labels=labels)
 
     # 一時保存したファイルの削除
     os.remove(file_path)
