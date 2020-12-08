@@ -7,3 +7,5 @@ cred.json
 client_mock/datasets/mugi/
 client_mock/datasets/tukushi/
 client_mock/datasets/tuyu/
+
+densenet.pth
