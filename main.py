@@ -20,11 +20,13 @@ CORS(app)
 
 firebase = Firebase()
 
+MODEL_PATH = 'classification/densenet.pth'
+
 # 起動時に最新のモデルに更新
 densenet_ref = firebase.get_document_ref(collection='model', document='densenet')
 densenet_info = densenet_ref.get().to_dict()
-if densenet_info['is_enable'] and ( densenet_info['is_update'] or not os.path.isfile('classification/densenet.pth') ):
-    file_name = 'classification/densenet.pth'
+if densenet_info['is_enable'] and ( densenet_info['is_update'] or not os.path.isfile(MODEL_PATH) ):
+    file_name = MODEL_PATH
     file_url = densenet_info['url']
     urllib.request.urlretrieve(file_url, file_name)
 
@@ -34,8 +36,8 @@ if densenet_info['is_enable'] and ( densenet_info['is_update'] or not os.path.is
         'url': densenet_info['url']
     })
 
-if os.path.isfile('classification/densenet.pth'):
-    classification = Classification(model_path='classification/densenet.pth', classes=densenet_info['labels'])
+if os.path.isfile(MODEL_PATH):
+    classification = Classification(model_path=MODEL_PATH, classes=densenet_info['labels'])
 
 # 訓練用サーバーの URL を指定
 train_url = sys.argv[1]
@@ -79,7 +81,7 @@ def upload_from_base64():
     img_np = base64_to_numpy(img_base64)
 
     labels = [None] * len(cat_boxes)
-    if os.path.isfile('classification/densenet.pth'):
+    if os.path.isfile(MODEL_PATH):
         for i, box in enumerate(cat_boxes):
             labels[i] = classification.predict(img_np[int(box['y_min']): int(box['y_max']), int(box['x_min']): int(box['x_max'])])
 
@@ -119,8 +121,8 @@ def training_cats():
     # 最新モデルに更新
     densenet_ref = firebase.get_document_ref(collection='model', document='densenet')
     densenet_info = densenet_ref.get().to_dict()
-    if densenet_info['is_enable'] and ( densenet_info['is_update'] or not os.path.isfile('classification/densenet.pth') ):
-        file_name = 'classification/densenet.pth'
+    if densenet_info['is_enable'] and ( densenet_info['is_update'] or not os.path.isfile(MODEL_PATH) ):
+        file_name = MODEL_PATH
         file_url = densenet_info['url']
         urllib.request.urlretrieve(file_url, file_name)
 
