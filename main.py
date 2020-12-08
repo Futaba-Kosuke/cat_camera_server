@@ -33,7 +33,8 @@ if densenet_info['is_enable'] and ( densenet_info['is_update'] or not os.path.is
     densenet_ref.set({
         'is_enable': True,
         'is_update': False,
-        'url': densenet_info['url']
+        'url': densenet_info['url'],
+        'labels': densenet_info['labels']
     })
 
 if os.path.isfile(MODEL_PATH):
