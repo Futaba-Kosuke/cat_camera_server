@@ -8,26 +8,11 @@ import glob
 
 url = sys.argv[1]
 
-def numpy_to_base64(img_np):
-    _, temp = cv2.imencode('.jpeg', img_np)
-    img_base64 = base64.b64encode(temp)
-    return img_base64
-
-paths = glob.glob(os.path.join('./datasets', '*', '**', '*'), recursive=True)
-
-payload = {
-    'data_list': [{}] * len(paths),
-}
-for i, path in enumerate(paths):
-    img = cv2.imread(path)
-    img_base64 = numpy_to_base64(img)
-    data = {
-        'img': img_base64.decode('utf-8'),
-        'label': os.path.basename(os.path.dirname(path))
-    }
-    payload['data_list'][i] = data
+with open('./data.json', 'r') as f:
+    payload = json.load(f)
 
 payload = json.dumps(payload).encode("utf-8")
+print(payload, type(payload))
 
 headers = {"Content-Type": "application/json"}
 

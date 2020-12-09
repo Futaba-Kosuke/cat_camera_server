@@ -9,3 +9,4 @@ client_mock/datasets/tukushi/
 client_mock/datasets/tuyu/
 
 densenet.pth
+data.json
